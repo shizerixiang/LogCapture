@@ -9,7 +9,7 @@
 			...
 			maven { url 'https://jitpack.io' }
 		}
-	}Copy
+	}
 ```
 
 #### Step 2. 添加依赖库到你 Module 的 build.gradle 下
