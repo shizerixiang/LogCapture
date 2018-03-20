@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity(), PermissionHelper.OnRequestPermissionsR
         CrashHandler.hintMsg = "程序崩溃" // 立即崩溃时的提示消息，默认为：程序崩溃
         CrashHandler.dirName = "demo" // 崩溃时，日志文件存储文件夹的名称，最好是独一无二的文件夹名称，生成路径在扩展存储的根目录
         CrashHandler.autoClearDay = 5 // 崩溃日志最大保存期限，单位：天 ，默认 5 天
-        CrashHandler.crashTime = 3 // 崩溃时的缓冲时间，默认为 3 秒
+        CrashHandler.crashTime = 6000 // 崩溃时的缓冲时间，单位：毫秒，默认为 3 秒
         // 崩溃日志处理回调，在该回调中对日志文件或信息进行处理
         CrashHandler.instance.setCrashLogListener(object : ICrashLogListener {
             override fun onCrash(crashLog: String) {
