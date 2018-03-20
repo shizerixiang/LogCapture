@@ -1,1 +1,1 @@
-include ':capturelib',':demo'
+include ':capturelib'

@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/LogCapture.iml" filepath="$PROJECT_DIR$/LogCapture.iml" />
       <module fileurl="file://$PROJECT_DIR$/capturelib/capturelib.iml" filepath="$PROJECT_DIR$/capturelib/capturelib.iml" />
-      <module fileurl="file://$PROJECT_DIR$/demo/demo.iml" filepath="$PROJECT_DIR$/demo/demo.iml" />
     </modules>
   </component>
 </project>
