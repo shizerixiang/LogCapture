@@ -15,7 +15,8 @@ class MainActivity : AppCompatActivity(), PermissionHelper.OnRequestPermissionsR
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         // 申请权限
-        requestDangerousPermission()
+//        requestDangerousPermission()
+        initData()
     }
 
     /**

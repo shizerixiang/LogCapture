@@ -1,12 +1,7 @@
 package com.beviswang.capturelib
 
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import java.lang.ref.WeakReference
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
 
 /**
  * 执行消息任务
@@ -14,33 +9,7 @@ import java.util.concurrent.Future
  */
 class ExecutorContext<T>(val weakRef: WeakReference<T>)
 /** 日志过滤关键字 */
-private val logKey = "-ExecutorFile-"
-/** Single thread executor. */
-private val exServer = Executors.newSingleThreadExecutor()!!
-
-/**
- * 只存在一个线程的异步任务
- * 可以通过 [uiThread] 返回到主线程中
- */
-fun <T> T.doSend(exService: ExecutorService = exServer,
-                 task: ExecutorContext<T>.() -> Unit): Future<*> {
-    val context = ExecutorContext(WeakReference(this))
-    return exService.submit { context.task() }
-}
-
-/**
- * 在 [doSend] 子线程中返回主线程执行任务
- * In the [doSend] method, return the UI thread to execute the task.
- */
-fun <T> ExecutorContext<T>.uiThread(f: (T) -> Unit): Boolean {
-    val ref = weakRef.get() ?: return false
-    if (ContextHelper.mainThread == Thread.currentThread()) {
-        f(ref)
-    } else {
-        ContextHelper.handler.post { f(ref) }
-    }
-    return true
-}
+private const val logKey = "-ExecutorFile-"
 
 /**
  * Print the log of Info type.
@@ -96,9 +65,4 @@ fun <T> T.logW(msg: String?) {
         return
     }
     Log.w(clazzName, msg)
-}
-
-private object ContextHelper {
-    val handler = Handler(Looper.getMainLooper())
-    val mainThread: Thread = Looper.getMainLooper().thread
 }

@@ -34,6 +34,8 @@ private constructor() : Thread.UncaughtExceptionHandler {
     private val formatter = SystemHelper.systemTimeStamp
     // 崩溃日志回调接口
     private var listener: ICrashLogListener? = null
+    // 崩溃首选路径
+    private var globalPath:String = "/storage/emulated/0/Android/data/com.beviswang.mockassistdriving/cache/"
 
     /**
      * 初始化
@@ -42,6 +44,7 @@ private constructor() : Thread.UncaughtExceptionHandler {
      */
     fun init(context: Context) {
         mContext = context
+        globalPath = context.externalCacheDir.absolutePath + File.separator
         // 获取系统默认的UncaughtException处理器
         mDefaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         // 设置该CrashHandler为程序的默认处理器
@@ -223,9 +226,9 @@ private constructor() : Thread.UncaughtExceptionHandler {
         @SuppressLint("StaticFieldLeak")
         val instance = CrashHandler()
 
-        private val globalPath: String
-            get() = (Environment.getExternalStorageDirectory().absolutePath
-                    + File.separator + dirName + File.separator)
+//        private val globalPath: String
+//            get() = (Environment.getExternalStorageDirectory().absolutePath
+//                    + File.separator + dirName + File.separator)
     }
 
 }
