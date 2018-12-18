@@ -1,7 +1,7 @@
 package com.beviswang.logcapture
 
 import android.app.Application
-import com.beviswang.capturelib.handler.CrashHandler
+import com.beviswang.capturelib.log.CrashLogger
 
 /**
  * 演示 Demo
@@ -11,6 +11,6 @@ class DemoApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         // 在 Application 中进行崩溃日志初始化
-        CrashHandler.instance.init(this)
+        CrashLogger.instance.init(this)
     }
 }

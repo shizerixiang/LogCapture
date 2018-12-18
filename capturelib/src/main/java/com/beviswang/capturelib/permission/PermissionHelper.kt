@@ -1,4 +1,4 @@
-package com.beviswang.capturelib.util
+package com.beviswang.capturelib.permission
 
 import android.Manifest
 import android.app.Activity

@@ -1,4 +1,4 @@
-package com.beviswang.capturelib.handler
+package com.beviswang.capturelib.log
 
 import android.os.Build
 import android.content.pm.PackageManager
@@ -7,10 +7,7 @@ import android.os.Looper
 import android.widget.Toast
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Environment
 import android.util.Log
-import com.beviswang.capturelib.util.FileHelper
-import com.beviswang.capturelib.util.SystemHelper
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -19,10 +16,11 @@ import java.util.*
  * 崩溃日志捕获处理类
  * <h3> 全局捕获异常 </h3>
  * <br> 当程序发生Uncaught异常的时候,有该类来接管程序,并记录错误日志 </br>
- * Created by shize on 2018/3/19.
+ * @author BevisWang
+ * @date 2018/12/18 13:35
  */
 @SuppressLint("SimpleDateFormat")
-class CrashHandler
+class CrashLogger
 /** 保证只有一个CrashHandler实例  */
 private constructor() : Thread.UncaughtExceptionHandler {
     // 系统默认的UncaughtException处理类
@@ -31,11 +29,20 @@ private constructor() : Thread.UncaughtExceptionHandler {
     // 用来存储设备信息和异常信息
     private val info = HashMap<String, String>()
     // 用于格式化日期,作为日志文件名的一部分，这里使用时间戳
-    private val formatter = SystemHelper.systemTimeStamp
+    private val formatter = systemTimeStamp
     // 崩溃日志回调接口
     private var listener: ICrashLogListener? = null
     // 崩溃首选路径
-    private var globalPath:String = "/storage/emulated/0/Android/data/com.beviswang.mockassistdriving/cache/"
+    private var globalPath: String = "/storage/emulated/0/cache/"
+
+    /**
+     * 获取系统时间戳
+     * 单位为秒 s
+     */
+    private val systemTimeStamp: Long
+        get() {
+            return System.currentTimeMillis() / 1000
+        }
 
     /**
      * 初始化
@@ -44,7 +51,7 @@ private constructor() : Thread.UncaughtExceptionHandler {
      */
     fun init(context: Context) {
         mContext = context
-        globalPath = context.externalCacheDir.absolutePath + File.separator
+        globalPath = context.externalCacheDir.absolutePath + File.separator + dirName + File.separator
         // 获取系统默认的UncaughtException处理器
         mDefaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         // 设置该CrashHandler为程序的默认处理器
@@ -140,7 +147,7 @@ private constructor() : Thread.UncaughtExceptionHandler {
             val date = sDateFormat.format(java.util.Date())
             sb.append("\r\n" + date + "\n")
             for ((key, value) in info) {
-                sb.append(key + "=" + value + "\n")
+                sb.append("$key=$value\n")
             }
 
             val writer = StringWriter()
@@ -154,7 +161,7 @@ private constructor() : Thread.UncaughtExceptionHandler {
             printWriter.flush()
             printWriter.close()
             val result = writer.toString()
-            object :Thread(){
+            object : Thread() {
                 override fun run() {
                     Looper.prepare()
                     listener?.onCrash(result)
@@ -182,7 +189,7 @@ private constructor() : Thread.UncaughtExceptionHandler {
         fos.write(sb.toByteArray())
         fos.flush()
         fos.close()
-        object :Thread(){
+        object : Thread() {
             override fun run() {
                 Looper.prepare()
                 listener?.onCrashLogFileCreated(path + fileName)
@@ -190,6 +197,32 @@ private constructor() : Thread.UncaughtExceptionHandler {
             }
         }.start()
         return fileName
+    }
+
+    /**
+     * 删除文件
+     */
+    private fun deleteFile(file: File) {
+        if (!file.exists()) {
+            Log.e(javaClass.simpleName, "When delete file,not found the log file!")
+            return
+        } else {
+            if (file.isFile) {
+                file.delete()
+                return
+            }
+            if (file.isDirectory) {
+                val childFile = file.listFiles()
+                if (childFile == null || childFile.isEmpty()) {
+                    file.delete()
+                    return
+                }
+                for (f in childFile) {
+                    deleteFile(f)
+                }
+                file.delete()
+            }
+        }
     }
 
     /**
@@ -201,9 +234,9 @@ private constructor() : Thread.UncaughtExceptionHandler {
         val dir = File(globalPath)
         if (dir.isDirectory) dir.listFiles().forEach {
             try {
-                if (it.nameWithoutExtension.toInt() < clearDayAgo) FileHelper.deleteFile(it)
+                if (it.nameWithoutExtension.toInt() < clearDayAgo) deleteFile(it)
             } catch (e: NumberFormatException) {
-                FileHelper.deleteFile(it)
+                deleteFile(it)
             }
         }
     }
@@ -221,14 +254,29 @@ private constructor() : Thread.UncaughtExceptionHandler {
         var dirName = "Crash" // 日志保存文件夹名称
         var autoClearDay = 5 // 自动删除日志文件的期限日期 单位：天
         var hintMsg = "程序崩溃" // 程序崩溃提示信息
-        var crashTime:Long = 3000 // 崩溃上传及提示信息时间
+        var crashTime: Long = 3000 // 崩溃上传及提示信息时间
         /** 获取CrashHandler实例 ,单例模式  */
         @SuppressLint("StaticFieldLeak")
-        val instance = CrashHandler()
-
-//        private val globalPath: String
-//            get() = (Environment.getExternalStorageDirectory().absolutePath
-//                    + File.separator + dirName + File.separator)
+        val instance = CrashLogger()
     }
 
+    /**
+     * 异常崩溃日志发生接口
+     * Created by shize on 2018/3/19.
+     */
+    interface ICrashLogListener {
+        /**
+         * 出现异常崩溃时，日志信息的显示
+         *
+         * @param crashLog 日志信息显示字符串
+         */
+        fun onCrash(crashLog: String)
+
+        /**
+         * 当出现异常崩溃时，需要进行的日志上传操作
+         *
+         * @param path 崩溃日志路径
+         */
+        fun onCrashLogFileCreated(path: String)
+    }
 }
